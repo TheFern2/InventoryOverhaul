@@ -28,5 +28,11 @@
   "options.hotbarAnchorY.BOTTOM": "Bottom",
   "options.hotbarOffsetY": "Hotbar Vertical Offset",
   "options.hotbarPaddingY": "Hotbar Vertical Padding",
-  "options.hotbarScale": "Hotbar Scale: %s"
+  "options.hotbarScale": "Hotbar Scale: %s",
+  "options.hotbarSplitRows": "Split Hotbar Rows: %s",
+  "options.hotbarSplitRows.true": "On",
+  "options.hotbarSplitRows.false": "Off",
+  "options.hotbarSplitAfterRow": "Split After Row",
+  "options.hotbarSplitGap": "Split Gap (pixels)",
+  "options.hotbarSplitTopOffset": "Top Section Offset"
 }

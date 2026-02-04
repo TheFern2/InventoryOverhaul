@@ -49,21 +49,65 @@ public class HotbarViewWidget {
     public void render(GuiGraphics guiGraphics, float partialTick, Player player) {
         Hotbar hotbar = getHotbar(player);
 
+        if (clientConfig.isHotbarSplitRows() && hotbar.getSizeY() > 1) {
+            renderSplit(guiGraphics, partialTick, player, hotbar);
+        } else {
+            renderNormal(guiGraphics, partialTick, player, hotbar);
+        }
+    }
+
+    private void renderNormal(GuiGraphics guiGraphics, float partialTick, Player player, Hotbar hotbar) {
         guiGraphics.pose().pushPose();
 
         Vec2 hotbarPosition = calculatePosition(clientConfig, hotbar);
         guiGraphics.pose().translate(hotbarPosition.x, hotbarPosition.y, 90);
         guiGraphics.pose().scale((float) clientConfig.getHotbarScale(), (float) clientConfig.getHotbarScale(), (float) clientConfig.getHotbarScale());
 
-        renderSlots(guiGraphics, partialTick, player);
-        renderOutline(guiGraphics, player);
-        renderSlotSelection(guiGraphics, player);
-        renderSlotSelectionOutline(guiGraphics, player);
+        renderSlots(guiGraphics, partialTick, player, 0, hotbar.getSizeY());
+        renderOutline(guiGraphics, player, 0, hotbar.getSizeY());
+        renderSlotSelection(guiGraphics, player, 0, hotbar.getSizeY(), 0);
+        renderSlotSelectionOutline(guiGraphics, player, 0, hotbar.getSizeY(), 0);
 
         guiGraphics.pose().popPose();
     }
 
-    private void renderSlots(GuiGraphics guiGraphics, float partialTick, Player player) {
+    private void renderSplit(GuiGraphics guiGraphics, float partialTick, Player player, Hotbar hotbar) {
+        int splitAfterRow = Math.min(clientConfig.getHotbarSplitAfterRow(), hotbar.getSizeY() - 1);
+        int bottomRows = splitAfterRow;
+        int topRows = hotbar.getSizeY() - splitAfterRow;
+        float scale = (float) clientConfig.getHotbarScale();
+        int splitGap = clientConfig.getHotbarSplitGap();
+        int topOffset = clientConfig.getHotbarSplitTopOffset();
+
+        Vec2 bottomPosition = calculatePosition(clientConfig, hotbar);
+
+        // Render bottom section (rows 0 to splitAfterRow-1, from bottom of hotbar)
+        int bottomStartRow = hotbar.getSizeY() - bottomRows;
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().translate(bottomPosition.x, bottomPosition.y + (topRows * 20 + splitGap) * scale, 90);
+        guiGraphics.pose().scale(scale, scale, scale);
+
+        renderSlots(guiGraphics, partialTick, player, bottomStartRow, hotbar.getSizeY());
+        renderOutline(guiGraphics, player, bottomStartRow, hotbar.getSizeY());
+        renderSlotSelection(guiGraphics, player, bottomStartRow, hotbar.getSizeY(), bottomStartRow);
+        renderSlotSelectionOutline(guiGraphics, player, bottomStartRow, hotbar.getSizeY(), bottomStartRow);
+
+        guiGraphics.pose().popPose();
+
+        // Render top section (rows splitAfterRow to end, rendered above the gap)
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().translate(bottomPosition.x, bottomPosition.y + topOffset * scale, 90);
+        guiGraphics.pose().scale(scale, scale, scale);
+
+        renderSlots(guiGraphics, partialTick, player, 0, topRows);
+        renderOutline(guiGraphics, player, 0, topRows);
+        renderSlotSelection(guiGraphics, player, 0, topRows, 0);
+        renderSlotSelectionOutline(guiGraphics, player, 0, topRows, 0);
+
+        guiGraphics.pose().popPose();
+    }
+
+    private void renderSlots(GuiGraphics guiGraphics, float partialTick, Player player, int startRow, int endRow) {
         Hotbar hotbar = getHotbar(player);
 
         if (hotbar.getSizeX() <= 0 || hotbar.getSizeY() <= 0) return;
@@ -71,12 +115,12 @@ public class HotbarViewWidget {
         guiGraphics.pose().pushPose();
         guiGraphics.pose().translate(1, 1, 0);
 
-        for (int slotY = 0; slotY < hotbar.getSizeY(); slotY++) {
+        for (int slotY = startRow; slotY < endRow; slotY++) {
             for (int slotX = 0; slotX < hotbar.getSizeX(); slotX++) {
                 int itemIndex = hotbar.getSlotIndex(slotX, slotY);
 
                 int posX = slotX * 20;
-                int posY = slotY * 20;
+                int posY = (slotY - startRow) * 20;
 
                 guiGraphics.pose().pushPose();
                 guiGraphics.pose().translate(posX, posY, 0);
@@ -92,7 +136,7 @@ public class HotbarViewWidget {
         guiGraphics.pose().popPose();
     }
 
-    private void renderOutline(GuiGraphics guiGraphics, Player player) {
+    private void renderOutline(GuiGraphics guiGraphics, Player player, int startRow, int endRow) {
         Hotbar hotbar = getHotbar(player);
 
         if (hotbar.getSizeX() <= 0 || hotbar.getSizeY() <= 0) return;
@@ -101,31 +145,34 @@ public class HotbarViewWidget {
         guiGraphics.pose().translate(0, 0, 0);
 
         int hotbarX = hotbar.getSizeX();
-        int hotbarY = hotbar.getSizeY();
+        int rowCount = endRow - startRow;
 
         // top, bottom, left, right
         guiGraphics.fill(0, 0, 1 + hotbarX * 20, 1, 0xFF000000);
-        guiGraphics.fill(0, hotbarY * 20, 1 + hotbarX * 20, 1 + hotbarY * 20, 0xFF000000);
-        guiGraphics.fill(0, 0, 1, 1 + hotbarY * 20, 0xFF000000);
-        guiGraphics.fill(hotbarX * 20, 0, 1 + hotbarX * 20, 1 + hotbarY * 20, 0xFF000000);
+        guiGraphics.fill(0, rowCount * 20, 1 + hotbarX * 20, 1 + rowCount * 20, 0xFF000000);
+        guiGraphics.fill(0, 0, 1, 1 + rowCount * 20, 0xFF000000);
+        guiGraphics.fill(hotbarX * 20, 0, 1 + hotbarX * 20, 1 + rowCount * 20, 0xFF000000);
 
         guiGraphics.pose().popPose();
     }
 
-    private void renderSlotSelection(GuiGraphics guiGraphics, Player player) {
+    private void renderSlotSelection(GuiGraphics guiGraphics, Player player, int startRow, int endRow, int rowOffset) {
         Hotbar hotbar = getHotbar(player);
 
         if (hotbar.getSizeX() <= 0 || hotbar.getSizeY() <= 0) return;
-
-        guiGraphics.pose().pushPose();
-        guiGraphics.pose().translate(0, 0, 0);
 
         int selectedSlot = player.getInventory().selected;
         int selectedX = selectedSlot % hotbar.getSizeX();
         int selectedY = selectedSlot / hotbar.getSizeX();
 
+        // Only render if selection is in this section
+        if (selectedY < startRow || selectedY >= endRow) return;
+
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().translate(0, 0, 0);
+
         int selectedPosX = selectedX * 20;
-        int selectedPosY = selectedY * 20;
+        int selectedPosY = (selectedY - rowOffset) * 20;
 
         guiGraphics.blitSprite(
                 HOTBAR_SELECTION_SPRITE, selectedPosX, selectedPosY, 22, 22
@@ -134,27 +181,33 @@ public class HotbarViewWidget {
         guiGraphics.pose().popPose();
     }
 
-    private void renderSlotSelectionOutline(GuiGraphics guiGraphics, Player player) {
+    private void renderSlotSelectionOutline(GuiGraphics guiGraphics, Player player, int startRow, int endRow, int rowOffset) {
         Hotbar hotbar = getHotbar(player);
 
         if (hotbar.getSizeX() <= 0 || hotbar.getSizeY() <= 0) return;
-
-        guiGraphics.pose().pushPose();
-        guiGraphics.pose().translate(-1, -1, 0);
 
         int selectedSlot = player.getInventory().selected;
         int selectedX = selectedSlot % hotbar.getSizeX();
         int selectedY = selectedSlot / hotbar.getSizeX();
 
+        // Only render if selection is in this section
+        if (selectedY < startRow || selectedY >= endRow) return;
+
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().translate(-1, -1, 0);
+
+        int rowCount = endRow - startRow;
+        int localSelectedY = selectedY - rowOffset;
+
         int selectedPosX = selectedX * 20;
-        int selectedPosY = selectedY * 20;
+        int selectedPosY = localSelectedY * 20;
         int endSelectedPosX = selectedPosX + 1;
         int endSelectedPosY = selectedPosY + 1;
 
         boolean firstX = selectedX == 0;
         boolean lastX = selectedX == hotbar.getSizeX() - 1;
-        boolean firstY = selectedY == 0;
-        boolean lastY = selectedY == hotbar.getSizeY() - 1;
+        boolean firstY = localSelectedY == 0;
+        boolean lastY = localSelectedY == rowCount - 1;
 
         // top, bottom, left, right
         if (firstY) {

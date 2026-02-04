@@ -36,6 +36,18 @@ public class ClientConfig extends AbstractClientConfig {
     @ConfigOption(size = ConfigOption.WidgetSize.FULL, slider = true, min = 0.5d, max = 2.0d, sliderStep = 0.05d)
     public double hotbarScale = 1.0d;
 
+    @ConfigOption
+    public boolean hotbarSplitRows = false;
+
+    @ConfigOption(size = ConfigOption.WidgetSize.TINY, min = 1, max = 8)
+    public int hotbarSplitAfterRow = 1;
+
+    @ConfigOption(size = ConfigOption.WidgetSize.TINY, min = 0, max = 100)
+    public int hotbarSplitGap = 40;
+
+    @ConfigOption(size = ConfigOption.WidgetSize.TINY, min = -100, max = 100)
+    public int hotbarSplitTopOffset = 0;
+
     public enum HotbarScrollDirection {
         ROW,
         COLUMN
