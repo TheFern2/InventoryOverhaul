@@ -66,6 +66,8 @@ public class HotbarViewWidget {
     private void renderSlots(GuiGraphics guiGraphics, float partialTick, Player player) {
         Hotbar hotbar = getHotbar(player);
 
+        if (hotbar.getSizeX() <= 0 || hotbar.getSizeY() <= 0) return;
+
         guiGraphics.pose().pushPose();
         guiGraphics.pose().translate(1, 1, 0);
 
@@ -93,6 +95,8 @@ public class HotbarViewWidget {
     private void renderOutline(GuiGraphics guiGraphics, Player player) {
         Hotbar hotbar = getHotbar(player);
 
+        if (hotbar.getSizeX() <= 0 || hotbar.getSizeY() <= 0) return;
+
         guiGraphics.pose().pushPose();
         guiGraphics.pose().translate(0, 0, 0);
 
@@ -110,6 +114,8 @@ public class HotbarViewWidget {
 
     private void renderSlotSelection(GuiGraphics guiGraphics, Player player) {
         Hotbar hotbar = getHotbar(player);
+
+        if (hotbar.getSizeX() <= 0 || hotbar.getSizeY() <= 0) return;
 
         guiGraphics.pose().pushPose();
         guiGraphics.pose().translate(0, 0, 0);
@@ -130,6 +136,8 @@ public class HotbarViewWidget {
 
     private void renderSlotSelectionOutline(GuiGraphics guiGraphics, Player player) {
         Hotbar hotbar = getHotbar(player);
+
+        if (hotbar.getSizeX() <= 0 || hotbar.getSizeY() <= 0) return;
 
         guiGraphics.pose().pushPose();
         guiGraphics.pose().translate(-1, -1, 0);
